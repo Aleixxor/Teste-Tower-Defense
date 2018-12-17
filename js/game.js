@@ -25,14 +25,61 @@ var SHOT_SPEED = 500;
 var BULLET_DAMAGE = 50;
 var VISION_RADIUS = 200;
 
-var map =  [[ 0,-1, 0, 0, 0, 0, 0, 0, 0, 0],
-            [ 0,-1, 0, 0, 0, 0, 0, 0, 0, 0],
-            [ 0,-1,-1,-1,-1,-1,-1,-1, 0, 0],
-            [ 0, 0, 0, 0, 0, 0, 0,-1, 0, 0],
-            [ 0, 0, 0, 0, 0, 0, 0,-1, 0, 0],
-            [ 0, 0, 0, 0, 0, 0, 0,-1, 0, 0],
-            [ 0, 0, 0, 0, 0, 0, 0,-1, 0, 0],
-            [ 0, 0, 0, 0, 0, 0, 0,-1, 0, 0]];
+var fases = {
+    fase1: {
+        startX: 96, 
+        startY: -32,
+        map:  [ [ 0,-1, 0, 0, 0, 0, 0, 0, 0, 0],
+                [ 0,-1, 0, 0, 0, 0, 0, 0, 0, 0],
+                [ 0,-1,-1,-1,-1,-1,-1,-1, 0, 0],
+                [ 0, 0, 0, 0, 0, 0, 0,-1, 0, 0],
+                [ 0, 0, 0, 0, 0, 0, 0,-1, 0, 0],
+                [ 0, 0, 0, 0, 0, 0, 0,-1, 0, 0],
+                [ 0, 0, 0, 0, 0, 0, 0,-1, 0, 0],
+                [ 0, 0, 0, 0, 0, 0, 0,-1, 0, 0]]
+    },
+    fase2: {
+        startX: 224, 
+        startY: -32,
+        map:  [ [ 0, 0, 0,-1, 0, 0, 0, 0, 0, 0],
+                [ 0, 0, 0,-1, 0, 0,-1,-1,-1, 0],
+                [ 0, 0, 0,-1, 0, 0,-1, 0,-1, 0],
+                [ 0, 0, 0,-1, 0, 0,-1, 0,-1, 0],
+                [ 0, 0, 0,-1,-1,-1,-1, 0,-1, 0],
+                [ 0, 0, 0, 0, 0, 0, 0, 0,-1, 0],
+                [ 0, 0, 0, 0, 0, 0, 0, 0,-1, 0],
+                [ 0, 0, 0, 0, 0, 0, 0, 0,-1, 0]]
+    },
+    fase3: {
+        startX: 608, 
+        startY: -32,
+        map:  [ [ 0,-1,-1,-1, 0, 0, 0, 0, 0,-1],
+                [ 0,-1, 0,-1, 0,-1,-1,-1, 0,-1],
+                [ 0,-1, 0,-1, 0,-1, 0,-1, 0,-1],
+                [ 0,-1, 0,-1, 0,-1, 0,-1, 0,-1],
+                [ 0,-1, 0,-1, 0,-1, 0,-1, 0,-1],
+                [ 0,-1, 0,-1, 0,-1, 0,-1, 0,-1],
+                [ 0,-1, 0,-1,-1,-1, 0,-1, 0,-1],
+                [ 0,-1, 0, 0, 0, 0, 0,-1,-1,-1]]
+    },
+    fase4: {
+        startX: 32, 
+        startY: -32,
+        map:  [ [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [ 0, 0, 0, 0, 0, 0, 0, 0, 0,-1],
+                [ 0,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+                [ 0,-1, 0, 0, 0, 0, 0, 0, 0, 0],
+                [ 0,-1,-1,-1,-1,-1,-1,-1,-1, 0],
+                [ 0, 0, 0, 0, 0, 0, 0, 0,-1, 0],
+                [-1,-1,-1,-1,-1,-1,-1,-1,-1, 0],
+                [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+    }
+}
+
+var ACTUAL_LEVEL = fases.fase4;
+
+var quadHeight = config.height/ACTUAL_LEVEL.map.length;
+var quadWidth = config.width/ACTUAL_LEVEL.map[0].length;
 
 function preload() {    
     this.load.atlas('sprites', 'assets/spritesheet.png', 'assets/spritesheet.json');
@@ -113,9 +160,9 @@ var Turret = new Phaser.Class({
             this.nextTic = 0;
         },
         place: function(i, j) {            
-            this.y = i * 64 + 64/2;
-            this.x = j * 64 + 64/2;
-            map[i][j] = 1;            
+            this.y = i * quadHeight + quadHeight/2;
+            this.x = j * quadWidth + quadWidth/2;
+            ACTUAL_LEVEL.map[i][j] = 1;            
         },
         fire: function() {
             var enemy = getEnemy(this.x, this.y, VISION_RADIUS);
@@ -182,14 +229,23 @@ var Bullet = new Phaser.Class({
         }
 
     });
- 
+var graphics;
 function create() {
-    var graphics = this.add.graphics();    
+    graphics = this.add.graphics();
     drawLines(graphics);
-    path = this.add.path(96, -32);
-    path.lineTo(96, 164);
-    path.lineTo(480, 164);
-    path.lineTo(480, 544);
+    // map =  [[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+    //         [ 0, 0, 0, 0, 0, 0, 0, 0, 0,-1],
+    //         [ 0,-1,-1,-1,-1,-1,-1,-1,-1,-1],
+    //         [ 0,-1, 0, 0, 0, 0, 0, 0, 0, 0],
+    //         [-1,-1,-1,-1,-1,-1,-1,-1,-1, 0],
+    //         [-1,-1, 0, 0, 0, 0, 0, 0,-1, 0],
+    //         [-1,-1,-1,-1,-1,-1,-1,-1,-1, 0],
+    //         [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
+
+    path = this.add.path(ACTUAL_LEVEL.startX, ACTUAL_LEVEL.startY);
+    
+    drawMap(ACTUAL_LEVEL.map);
+    
     
     graphics.lineStyle(2, 0xffffff, 1);
     path.draw(graphics);
@@ -207,6 +263,60 @@ function create() {
     this.input.on('pointerdown', placeTurret);
 }
 
+function drawMap(map){
+    let printed = "";
+    let biggerC = 0;
+    let lesserC = 0;
+    let column = -1;
+    for(let l=0; l<map.length;l++){
+        column = -1;
+        let alreadyChecked = false;
+        
+
+        do{
+            column = column + 1;
+            
+            if (alreadyChecked == false){
+               console.log("alreadyChecked == false")
+               if(map[l][column] == -1){
+                   console.log("LESSERC == "+column)
+                   lesserC = column;
+                   alreadyChecked = true;
+               }
+            }
+            console.log("column: %s\nmap.length: %s\nalreadychecked: %s\nlesserC: %s",column, map.length, alreadyChecked, lesserC)
+       }while(column < map[l].length);
+       
+        alreadyChecked = false;
+        console.log("--------------------\nbiggerC: %s\nlesserC: %s", biggerC, lesserC);
+        if(biggerC == lesserC){
+            for(let c=0; c<map[l].length;c++){
+                if(map[l][c] == -1){
+                    path.lineTo((quadWidth/2)+((quadWidth/2)*c*2), (quadHeight/2)+((quadHeight/2)*l*2));
+                    biggerC = c;
+                    console.log("l: "+(quadHeight/2)+((quadHeight/2)*l*2)+", c: "+(quadWidth/2)+((quadWidth/2)*c*2));
+                }
+                printed += map[l][c]+" ";
+            }
+
+        }else{
+
+            for(let c=map[l].length-1; c>0;c--){
+                if(map[l][c] == -1){
+                    path.lineTo((quadWidth/2)+((quadWidth/2)*c*2), (quadHeight/2)+((quadHeight/2)*l*2));
+                    biggerC = c;
+                    console.log("l: "+(quadHeight/2)+((quadHeight/2)*l*2)+", c: "+(quadWidth/2)+((quadWidth/2)*c*2));
+                }
+                printed += map[l][c]+" ";
+            }
+
+        }
+        
+        printed += "\n";
+        console.log(printed);
+    }
+}
+
 function damageEnemy(enemy, bullet) {  
     // only if both enemy and bullet are alive
     if (enemy.active === true && bullet.active === true) {
@@ -221,13 +331,13 @@ function damageEnemy(enemy, bullet) {
 
 function drawLines(graphics) {
     graphics.lineStyle(1, 0x0000ff, 0.8);
-    for(var i = 0; i < 8; i++) {
-        graphics.moveTo(0, i * 64);
-        graphics.lineTo(640, i * 64);
+    for(var i = 0; i < ACTUAL_LEVEL.map.length; i++) {
+        graphics.moveTo(0, i * quadHeight);
+        graphics.lineTo(config.width, i * quadHeight);
     }
-    for(var j = 0; j < 10; j++) {
-        graphics.moveTo(j * 64, 0);
-        graphics.lineTo(j * 64, 512);
+    for(var j = 0; j < ACTUAL_LEVEL.map[0].length; j++) {
+        graphics.moveTo(j * quadWidth, 0);
+        graphics.lineTo(j * quadWidth, config.height);
     }
     graphics.strokePath();
 }
@@ -249,12 +359,12 @@ function update(time, delta) {
 }
 
 function canPlaceTurret(i, j) {
-    return map[i][j] === 0;
+    return ACTUAL_LEVEL.map[i][j] === 0;
 }
 
 function placeTurret(pointer) {
-    var i = Math.floor(pointer.y/64);
-    var j = Math.floor(pointer.x/64);
+    var i = Math.floor(pointer.y/quadHeight);
+    var j = Math.floor(pointer.x/quadWidth);
     if(canPlaceTurret(i, j)) {
         var turret = turrets.get();
         if (turret)
